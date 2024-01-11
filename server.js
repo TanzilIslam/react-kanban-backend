@@ -29,7 +29,11 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 app.use(bodyParser.json());
 app.use("/uploads", express.static("uploads"));
-app.use(cors());
+const corsOptions = {
+  origin: "https://react-kanban-board-tanzil.netlify.app/",
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+app.use(cors(corsOptions));
 
 // create columns start
 

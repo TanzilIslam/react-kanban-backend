@@ -293,6 +293,7 @@ app.post(
   }
 );
 
+app.options("/api/tasks/:taskId/file/:fileId/:fileName", cors(corsOptions));
 app.delete(
   "/api/tasks/:taskId/file/:fileId/:fileName",
   cors(corsOptions),

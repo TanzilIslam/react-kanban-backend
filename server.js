@@ -56,7 +56,7 @@ const columnSchema = new mongoose.Schema({
 
 const Column = mongoose.model("Column", columnSchema);
 
-app.post("/api/columns", cors(columnsCorsOptions), async (req, res) => {
+app.post("/api/columns", cors(corsOptions), async (req, res) => {
   try {
     const { name, color } = req.body;
     if (!name) {
@@ -73,7 +73,7 @@ app.post("/api/columns", cors(columnsCorsOptions), async (req, res) => {
   }
 });
 
-app.get("/api/columns", cors(columnsCorsOptions), async (req, res) => {
+app.get("/api/columns", cors(corsOptions), async (req, res) => {
   try {
     const allColumns = await Column.find({}, "_id name color");
     const formattedColumns = allColumns.map((column) => ({
@@ -121,7 +121,7 @@ const taskSchema = new mongoose.Schema({
 
 const Task = mongoose.model("Task", taskSchema);
 
-app.post("/api/tasks", cors(columnsCorsOptions), async (req, res) => {
+app.post("/api/tasks", cors(corsOptions), async (req, res) => {
   try {
     const {
       column,
@@ -165,7 +165,7 @@ app.post("/api/tasks", cors(columnsCorsOptions), async (req, res) => {
   }
 });
 
-app.get("/api/tasks", cors(columnsCorsOptions), async (req, res) => {
+app.get("/api/tasks", cors(corsOptions), async (req, res) => {
   try {
     const allTasks = await Task.find(
       {},
@@ -189,7 +189,7 @@ app.get("/api/tasks", cors(columnsCorsOptions), async (req, res) => {
   }
 });
 
-app.get("/api/tasks/:taskId", cors(columnsCorsOptions), async (req, res) => {
+app.get("/api/tasks/:taskId", cors(corsOptions), async (req, res) => {
   try {
     const taskId = req.params.taskId;
 
@@ -215,7 +215,7 @@ app.get("/api/tasks/:taskId", cors(columnsCorsOptions), async (req, res) => {
 
 app.put(
   "/api/tasks/:taskId/column/:columnId",
-  cors(columnsCorsOptions),
+  cors(corsOptions),
   async (req, res) => {
     try {
       const taskId = req.params.taskId;
@@ -254,7 +254,7 @@ app.put(
 // file upload start
 app.post(
   "/api/tasks/:taskId/upload",
-  cors(columnsCorsOptions),
+  cors(corsOptions),
   upload.array("files"),
   async (req, res) => {
     try {
@@ -295,7 +295,7 @@ app.post(
 
 app.delete(
   "/api/tasks/:taskId/file/:fileId/:fileName",
-  cors(columnsCorsOptions),
+  cors(corsOptions),
   async (req, res) => {
     try {
       const { taskId, fileId, fileName } = req.params;

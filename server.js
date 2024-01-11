@@ -56,7 +56,7 @@ const columnSchema = new mongoose.Schema({
 
 const Column = mongoose.model("Column", columnSchema);
 
-app.post("/api/columns", async (req, res) => {
+app.post("/api/columns", cors(columnsCorsOptions), async (req, res) => {
   try {
     const { name, color } = req.body;
     if (!name) {
@@ -73,7 +73,7 @@ app.post("/api/columns", async (req, res) => {
   }
 });
 
-app.get("/api/columns", async (req, res) => {
+app.get("/api/columns", cors(columnsCorsOptions), async (req, res) => {
   try {
     const allColumns = await Column.find({}, "_id name color");
     const formattedColumns = allColumns.map((column) => ({
@@ -121,7 +121,7 @@ const taskSchema = new mongoose.Schema({
 
 const Task = mongoose.model("Task", taskSchema);
 
-app.post("/api/tasks", async (req, res) => {
+app.post("/api/tasks", cors(columnsCorsOptions), async (req, res) => {
   try {
     const {
       column,
@@ -165,7 +165,7 @@ app.post("/api/tasks", async (req, res) => {
   }
 });
 
-app.get("/api/tasks", async (req, res) => {
+app.get("/api/tasks", cors(columnsCorsOptions), async (req, res) => {
   try {
     const allTasks = await Task.find(
       {},
@@ -189,7 +189,7 @@ app.get("/api/tasks", async (req, res) => {
   }
 });
 
-app.get("/api/tasks/:taskId", async (req, res) => {
+app.get("/api/tasks/:taskId", cors(columnsCorsOptions), async (req, res) => {
   try {
     const taskId = req.params.taskId;
 
@@ -213,43 +213,48 @@ app.get("/api/tasks/:taskId", async (req, res) => {
   }
 });
 
-app.put("/api/tasks/:taskId/column/:columnId", async (req, res) => {
-  try {
-    const taskId = req.params.taskId;
-    const columnId = req.params.columnId;
+app.put(
+  "/api/tasks/:taskId/column/:columnId",
+  cors(columnsCorsOptions),
+  async (req, res) => {
+    try {
+      const taskId = req.params.taskId;
+      const columnId = req.params.columnId;
 
-    // Check if both IDs are valid
-    if (
-      !mongoose.Types.ObjectId.isValid(taskId) ||
-      !mongoose.Types.ObjectId.isValid(columnId)
-    ) {
-      return res.status(400).json({ error: "Invalid task or column ID" });
+      // Check if both IDs are valid
+      if (
+        !mongoose.Types.ObjectId.isValid(taskId) ||
+        !mongoose.Types.ObjectId.isValid(columnId)
+      ) {
+        return res.status(400).json({ error: "Invalid task or column ID" });
+      }
+
+      // Check if the task exists
+      const task = await Task.findById(taskId);
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      // Update the task's column
+      task.column = columnId;
+
+      // Save the updated task
+      await task.save();
+
+      res.json({ message: "Task column updated successfully", task });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
     }
-
-    // Check if the task exists
-    const task = await Task.findById(taskId);
-    if (!task) {
-      return res.status(404).json({ error: "Task not found" });
-    }
-
-    // Update the task's column
-    task.column = columnId;
-
-    // Save the updated task
-    await task.save();
-
-    res.json({ message: "Task column updated successfully", task });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
   }
-});
+);
 
 // task end
 
 // file upload start
 app.post(
   "/api/tasks/:taskId/upload",
+  cors(columnsCorsOptions),
   upload.array("files"),
   async (req, res) => {
     try {
@@ -288,38 +293,42 @@ app.post(
   }
 );
 
-app.delete("/api/tasks/:taskId/file/:fileId/:fileName", async (req, res) => {
-  try {
-    const { taskId, fileId, fileName } = req.params;
+app.delete(
+  "/api/tasks/:taskId/file/:fileId/:fileName",
+  cors(columnsCorsOptions),
+  async (req, res) => {
+    try {
+      const { taskId, fileId, fileName } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(taskId)) {
-      return res.status(400).json({ error: "Invalid task ID" });
-    }
-
-    const existingTask = await Task.findById(taskId);
-    if (!existingTask) {
-      return res.status(404).json({ error: "Task not found" });
-    }
-    fs.unlink(`uploads/${fileName}`, async (err) => {
-      if (err) throw err;
-      else {
-        const updatedTask = await Task.findByIdAndUpdate(
-          taskId,
-          {
-            $pull: {
-              files: { _id: fileId },
-            },
-          },
-          { new: true }
-        );
-        res.json({ message: "File deleted successfully", task: updatedTask });
+      if (!mongoose.Types.ObjectId.isValid(taskId)) {
+        return res.status(400).json({ error: "Invalid task ID" });
       }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+
+      const existingTask = await Task.findById(taskId);
+      if (!existingTask) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      fs.unlink(`uploads/${fileName}`, async (err) => {
+        if (err) throw err;
+        else {
+          const updatedTask = await Task.findByIdAndUpdate(
+            taskId,
+            {
+              $pull: {
+                files: { _id: fileId },
+              },
+            },
+            { new: true }
+          );
+          res.json({ message: "File deleted successfully", task: updatedTask });
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
-});
+);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -30,7 +30,19 @@ mongoose.connect(process.env.MONGODB_URI, {
 app.use(bodyParser.json());
 app.use("/uploads", express.static("uploads"));
 const corsOptions = {
-  origin: "https://react-kanban-board-tanzil.netlify.app/",
+  origin: function (origin, callback) {
+    // Check if the origin is allowed or if it's a same-origin request
+    const allowedOrigins = [
+      "https://react-kanban-board-tanzil.netlify.app",
+      "http://localhost:5173/",
+    ];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 app.use(cors(corsOptions));

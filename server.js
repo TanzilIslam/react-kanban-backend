@@ -17,17 +17,9 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-const corsOptions = {
-  origin: "https://react-kanban-board-tanzil.netlify.app/", // Set this to your frontend domain in production
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true,
-  optionsSuccessStatus: 204,
-};
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-app.use(cors(corsOptions));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -304,7 +296,6 @@ app.delete("/api/tasks/:taskId/file/:fileId/:fileName", async (req, res) => {
           },
           { new: true }
         );
-        res.header("Access-Control-Allow-Methods", "DELETE");
         res.json({ message: "File deleted successfully", task: updatedTask });
       }
     });
